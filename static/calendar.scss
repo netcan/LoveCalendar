@@ -1,0 +1,42 @@
+.calendar-title {
+  text-align: center;
+}
+
+#cal {
+  display: inline-block;
+  td {
+    width: 16%;
+    padding: .5em;
+    text-align: center;
+  }
+  .other-day {
+    color: gray;
+  }
+  .today {
+    background: no-repeat center;
+  }
+  %btn {
+    cursor: pointer;
+    transition: background-color 0.5s ease;
+  }
+  %btn:hover {
+    background-color: #3cb0fd;
+    color: white;
+  }
+  #prev-month {
+    @extend %btn;
+  }
+  #next-month {
+    @extend %btn;
+  }
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+

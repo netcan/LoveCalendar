@@ -1,0 +1,29 @@
+.calendar-title {
+  text-align: center; }
+
+#cal {
+  display: inline-block; }
+  #cal td {
+    width: 16%;
+    padding: .5em;
+    text-align: center; }
+  #cal .other-day {
+    color: gray; }
+  #cal .today {
+    background: no-repeat center; }
+  #cal #prev-month, #cal #next-month {
+    cursor: pointer;
+    transition: background-color 0.5s ease; }
+  #cal #prev-month:hover, #cal #next-month:hover {
+    background-color: #3cb0fd;
+    color: white; }
+
+.unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+/*# sourceMappingURL=calendar.css.map */
