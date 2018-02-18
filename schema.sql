@@ -5,7 +5,7 @@ drop table if exists users_notes;
 -- 账号
 create table users (
     id integer primary key autoincrement,
-    name varchar(20) not null,
+    name varchar(20) not null unique,
     password varchar(20) not null,
     avatar text
 );
