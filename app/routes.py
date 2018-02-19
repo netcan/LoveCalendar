@@ -6,15 +6,24 @@ import calendar
 
 
 @app.route("/")
+@app.route("/index")
 def index():
-    return render_template('index.html')
+    if session.get('username'):
+        return render_template("index.html")
+    else:
+        users = User.query.all()
+        return render_template("login.html", users=users)
+
 
 
 @app.route("/api/login", methods=['POST'])
 def login():
-    ret = {}
+    """
+    status_code: 0表示成功，1表示失败
+    """
+    ret = {'status_code': 1}
     if session.get('username'):
-        ret['username'] = session['username']
+        ret['status_code'] = 0
         return jsonify(**ret)
 
     username = request.form.get('username', None)
@@ -22,12 +31,10 @@ def login():
     if username and password:
         u = User.query.filter_by(username=username).first()
         if u and u.check_password(password):
-            ret['username'] = session['username'] = username
-            return jsonify(**ret)
-        else:
-            return jsonify('login failed'), 403
+            session['username'] = username
+            ret['status_code'] = 0
 
-    return jsonify('login failed'), 403
+    return jsonify(**ret)
 
 
 @app.route("/api/logout")

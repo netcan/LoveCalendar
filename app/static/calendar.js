@@ -1,21 +1,41 @@
 cal_api = '/api/'
 function fetchDays(year, month) {
     for(var i = 0; i < 6; ++i)
-        document.getElementById('week' + i).innerHTML = '<td></td>';
+        $('#week'+i).html('<td></td>')
 
-    var xmlhttp = new XMLHttpRequest();
     var url = cal_api + 'cal/';
-    if(typeof year !== 'undefined') {
-        url += year + '/' + month;
-        console.log(url);
-    }
-    xmlhttp.open('GET', url, true);
-    xmlhttp.send();
-    xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200)
-            renderCal(JSON.parse(this.responseText));
-    };
+    if(typeof year !== 'undefined') url += year + '/' + month;
 
+    $.getJSON(url).done(function (data) {
+        renderCal(data);
+    });
+}
+
+function login() {
+    $('#change_user').click(function () {
+        $('.shape').shape('flip over');
+    });
+    $('#login').click(function () {
+        var url = cal_api + 'login';
+        var username = $('.active.side input.username').val();
+        var password = $('.active.side input.password').val();
+        if(password) {
+            $.post(url, {
+                username: username,
+                password: password
+            }).done(function (data) { // login success
+                console.log(data);
+                if(data.status_code == 0)
+                    location.reload();
+                else
+                    alert('Login failed!')
+            })
+        } else
+            alert('please input password!')
+
+    });
+
+    $('.ui.modal').modal('show');
 
 }
 
@@ -40,28 +60,28 @@ function renderCal(data) {
     $p('#cal').render(data, directive);
 
     // today
-    if (typeof document.getElementsByClassName('today')[0] !== 'undefined') {
+    var today = $('.today');
+    if (today.length !== 0) {
         var today_heart = feather.icons.heart.toSvg({
             color: 'red',
             fill: 'red'
         });
-        document.getElementsByClassName('today')[0].style.backgroundImage =
-            'url(\'data:image/svg+xml;utf8,' + today_heart + '\')';
-        document.getElementsByClassName('today')[0].className += ' animated infinite pulse';
+        today.css('background-image', 'url(\'data:image/svg+xml;utf8,' + today_heart + '\')');
+        today.addClass('animated infinite pulse');
     }
 
     // 绑定切换按钮
-    document.getElementById('prev-month').onclick = function (ev) {
-        var year = this.getAttribute('data-year');
-        var month = this.getAttribute('data-month');
+    $('#prev-month').click(function () {
+        var year = $(this).attr('data-year');
+        var month = $(this).attr('data-month');
         if(month - 1 >= 1) fetchDays(year, month - 1);
         else fetchDays(year - 1, 12);
-    }
-    document.getElementById('next-month').onclick = function (ev) {
-        var year = parseInt(this.getAttribute('data-year'));
-        var month = parseInt(this.getAttribute('data-month'));
+    });
+    $('#next-month').click(function () {
+        var year = parseInt($(this).attr('data-year'));
+        var month = parseInt($(this).attr('data-month'));
         if(month + 1 <= 12) fetchDays(year, month + 1);
         else fetchDays(year + 1, 1);
-    }
+    });
 
 }

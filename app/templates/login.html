@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block main %}
+    <div class="ui centered grid">
+        <div class="ui stacked segments">
+            <div class="ui segment">
+                <h2 class="ui header">Login</h2>
+                <div class="ui shape">
+                    <div class="sides">
+                        {% for u in users %}
+                            <div class="{% if loop.index0 == 0 %}active{% endif %} side">
+                                <div class="ui fluid card">
+                                    <div class="image">
+                                        <img src="{{ u.avatar }}">
+                                    </div>
+                                    <div class="content">
+                                        <input class="username" type="hidden" value="{{ u.username|e }}">
+                                        <a class="header">{{ u.username|e }}</a>
+                                    </div>
+                                    <div class="extra content">
+                                        <div class="ui form">
+                                            <div class="field">
+                                                <input type="password" autocomplete="off" class="password" placeholder="password">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="ui segment">
+                <button class="ui labeled icon button" id="change_user"><i class="heterosexual icon"></i>Change</button>
+                <button class="ui labeled icon button" id="login" type="submit"><i class="sign in icon"></i>Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>login();</script>
+{% endblock %}
