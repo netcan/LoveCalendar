@@ -1,43 +1,10 @@
-from config import app, bcrypt
-import click
-from flask import url_for, render_template, jsonify, g, session, request
+from flask import render_template, session, request, jsonify
 from datetime import date
-import sqlite3
+from app import app
+from app.models import User
 import calendar
 
 
-# 连接数据库部分
-def get_db():
-    if not hasattr(g, 'db'):
-        g.db = sqlite3.connect(app.config['DATABASE'])
-        g.db.row_factory = sqlite3.Row
-    return g.db
-
-
-# 命令行部分
-@app.cli.command()
-@click.argument('username')
-@click.option('--avatar', default=None, help="Set user's avatar")
-@click.password_option(help="Set user's password")
-def adduser(username, avatar, password):
-    """Add a user to app"""
-    db = get_db()
-    sql = "insert into users (avatar, name, password) values (?, ?, ?)"
-    db.execute(sql, [avatar, username, bcrypt.generate_password_hash(password)])
-    db.commit()
-
-
-@app.cli.command()
-@click.argument('username')
-def deluser(username):
-    """Delete a user"""
-    db = get_db()
-    sql = "delete from users where name = ?"
-    db.execute(sql, [username])
-    db.commit()
-
-
-# 路由逻辑部分
 @app.route("/")
 def index():
     return render_template('index.html')
@@ -50,23 +17,23 @@ def login():
         ret['username'] = session['username']
         return jsonify(**ret)
 
-    if request.form['username'] and request.form['password']:
-        db = get_db()
-        sql = "select password from users where name = ?"
-        password = db.execute(sql, [request.form['username']]).fetchall()
-        if len(password) == 0 or password[0]['password'] != request.form['password']:
-            return 'login failed', 403
+    username = request.form.get('username', None)
+    password = request.form.get('password', None)
+    if username and password:
+        u = User.query.filter_by(username=username).first()
+        if u and u.check_password(password):
+            ret['username'] = session['username'] = username
+            return jsonify(**ret)
+        else:
+            return jsonify('login failed'), 403
 
-        ret['username'] = session['username'] = request.form['username']
-        return jsonify(**ret)
-
-    return 'login failed', 403
+    return jsonify('login failed'), 403
 
 
 @app.route("/api/logout")
 def logout():
     session.pop('username', None)
-    return 'logout success'
+    return jsonify('logout success')
 
 
 @app.route("/api/cal/")

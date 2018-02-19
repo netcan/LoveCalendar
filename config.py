@@ -1,12 +1,9 @@
-import os
-from flask import Flask
-from flask.ext.bcrypt import Bcrypt
+import os, pytz
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 
-app = Flask(__name__)
-app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'calendar.db'),
-    SECRET_KEY='development key',
-))
-bcrypt = Bcrypt(app)
-
+class Config:
+    SECRET_KEY='development key'
+    SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(basedir, 'calendar.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False,
+    TIMEZONE=pytz.timezone('Asia/Shanghai')
