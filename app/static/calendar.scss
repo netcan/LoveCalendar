@@ -3,9 +3,11 @@
 }
 
 #cal {
+  font-family: 'Indie Flower', cursive;
   td {
-    font-size: 2vw;
+    font-size: 4.5vw;
     width: 14.285714285714286%;
+    padding: 0.55em 0.5em;
     border-top: 0px;
   }
   .other-day {
@@ -28,9 +30,12 @@
   #next-month {
     @extend %btn;
   }
+  .menu {
+    @extend %btn;
+  }
 
   .today {
-    background-size: 5vw;
+    background-size: 6vw;
   }
 }
 

@@ -5,32 +5,34 @@
 {% endblock %}
 
 {% block main %}
-    <table id="cal" class="ui very basic unstackable table unselectable">
-        <thead>
-        <tr class="center aligned">
-            <td id="prev-month" ><i data-feather="chevrons-left"></i></td>
-            <td colspan="5" id="calendar-title"></td>
-            <td id="next-month"><i data-feather="chevrons-right"></i></td>
-        </tr>
-        <tr class="center aligned">
-            <td>Sun</td>
-            <td>Mon</td>
-            <td>Tue</td>
-            <td>Wed</td>
-            <td>Thu</td>
-            <td>Fri</td>
-            <td>Sat</td>
-        </tr>
-        </thead>
-        <tbody>
-        <tr id="week0" class="center aligned"></tr>
-        <tr id="week1" class="center aligned"></tr>
-        <tr id="week2" class="center aligned"></tr>
-        <tr id="week3" class="center aligned"></tr>
-        <tr id="week4" class="center aligned"></tr>
-        <tr id="week5" class="center aligned"></tr>
-        </tbody>
-    </table>
+        <table id="cal" class="ui very basic unstackable table unselectable">
+            <thead>
+            <tr class="center aligned">
+                <td id="menu" class="menu"><i class="sidebar icon"></i></td>
+                <td colspan="4" id="calendar-title"></td>
+                <td id="prev-month" ><i class="angle double left icon"></i></td>
+                <td id="next-month"><i class="angle double right icon"></i></td>
+            </tr>
+            <tr class="center aligned">
+                <td>Sun</td>
+                <td>Mon</td>
+                <td>Tue</td>
+                <td>Wed</td>
+                <td>Thu</td>
+                <td>Fri</td>
+                <td>Sat</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr id="week0" class="center aligned"></tr>
+            <tr id="week1" class="center aligned"></tr>
+            <tr id="week2" class="center aligned"></tr>
+            <tr id="week3" class="center aligned"></tr>
+            <tr id="week4" class="center aligned"></tr>
+            <tr id="week5" class="center aligned"></tr>
+            </tbody>
+        </table>
+
     <script>
         fetchDays();
     </script>

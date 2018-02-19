@@ -83,5 +83,9 @@ function renderCal(data) {
         if(month + 1 <= 12) fetchDays(year, month + 1);
         else fetchDays(year + 1, 1);
     });
+    $('#menu').click(function () {
+        $('.ui.sidebar').sidebar('toggle');
+    });
 
 }
+

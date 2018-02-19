@@ -1,0 +1,12 @@
+{% if u %}
+<div class="ui sidebar inverted vertical labeled icon menu">
+    <a class="item">
+        <img class="ui mini circular image" src="{{ u.avatar }}">
+        {{ u.username|e }}
+    </a>
+    <a class="item">
+        <i class="sign out icon"></i>
+        Logout
+    </a>
+</div>
+{% endif %}

@@ -9,11 +9,11 @@ import calendar
 @app.route("/index")
 def index():
     if session.get('username'):
-        return render_template("index.html")
+        u = User.query.filter_by(username=session['username']).first()
+        return render_template("index.html", u=u)
     else:
         users = User.query.all()
         return render_template("login.html", users=users)
-
 
 
 @app.route("/api/login", methods=['POST'])

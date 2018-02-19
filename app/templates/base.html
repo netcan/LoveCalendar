@@ -6,6 +6,7 @@
     <title>{% block title %}{% endblock %}</title>
     <link href="https://cdn.bootcss.com/semantic-ui/2.2.14/semantic.min.css" rel="stylesheet">
     <link href="https://cdn.bootcss.com/animate.css/3.5.2/animate.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="static/calendar.css">
 
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
@@ -15,9 +16,12 @@
     <script type="text/javascript" src="static/calendar.js"></script>
 </head>
 <body>
-<div class="ui container">
-    {% block main %}
-    {% endblock %}
+{% include 'sidebar.html' %}
+<div class="pusher">
+    <div class="ui container">
+        {% block main %}
+        {% endblock %}
+    </div>
 </div>
 <script>
     feather.replace()
