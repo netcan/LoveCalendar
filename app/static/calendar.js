@@ -1,21 +1,5 @@
 cal_api = '/api/'
 
-function bindKeys() {
-    // 绑定切换按钮
-    $('#prev-month').click(function () {
-        var year = $(this).attr('data-year');
-        var month = $(this).attr('data-month');
-        if(month - 1 >= 1) fetchDays(year, month - 1);
-        else fetchDays(year - 1, 12);
-    });
-    $('#next-month').click(function () {
-        var year = parseInt($(this).attr('data-year'));
-        var month = parseInt($(this).attr('data-month'));
-        if(month + 1 <= 12) fetchDays(year, month + 1);
-        else fetchDays(year + 1, 1);
-    });
-}
-
 function fetchDays(year, month) {
     for(var i = 0; i < 6; ++i)
         $('#week'+i).html('<td></td>')
@@ -58,65 +42,94 @@ function login() {
 
 function renderCal(data) {
     console.log(data);
-    for (var w = 0; w < 6; ++w) {
-        var week = data['week' + w];
-        console.log(week);
-        var week_days = '';
-        for (var d = 0; d < week.length; ++d) {
-            var day = week[d];
-            var dh = "<td class='" + day.style + "'>" + day.day + "</td>";
-            switch (day.style) {
-                case 'half-love':
-                    var heart = feather.icons.heart.toSvg({
-                        color: data.mark_color
-                    });
-                    break;
+    var directive = {};
+    for(var i = 0; i < 6; ++i) {
+        week = {};
+        week['day<-week'+i] =  {
+            '.': 'day.day',
+            '@class': function (d) {
+                switch(d.item.style) {
+                    case 'full-love':
+                        return d.item.style + ' animated infinite pulse';
+                    default:
+                        return d.item.style;
+                }
+            },
+            '@style': function (d) {
+                switch(d.item.style) {
+                    case 'half-love':
+                        var heart = feather.icons.heart.toSvg({
+                            color: d.item['mark_color']
+                        });
+                        return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
+                    case 'full-love':
+                        var heart = feather.icons.heart.toSvg({
+                            color: 'red',
+                            fill: 'red'
+                        });
+                        return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
+                }
+            },
+            '@data-html': function (d) {
+                html = '';
+                notes = d.item.notes;
+                if (notes.length > 0) {
+                    html += '<div class="ui  feed">';
+                    for(var i = 0; i < notes.length; ++i) {
+                        note = notes[i];
+                        html +=
+                            '  <div class="event">\n' +
+                            '    <div class="label">\n' +
+                            '      <img src="' + note.avatar + '">\n' +
+                            '    </div>\n' +
+                            '    <div class="content">\n' +
+                            '      <div class="summary">\n' +
+                            '        <a>' + note.author + '</a> 添加了动态' +
+                            '        <div class="date">\n' +
+                                        note.timestamp +
+                            '        </div>\n' +
+                            '      </div>\n' +
+                            '      <div class="extra text">\n' +
+                                        note.content.substring(0, 30) + '...' +
+                            '      </div>\n' +
+                            '    </div>\n' +
+                            '  </div>'
+                    }
+                    html += '</div>';
+                }
+                return html;
             }
-
-            week_days += dh;
-        }
-        $('#week' + w).html(week_days);
+        };
+        directive['#week'+i+' td'] = week;
     }
-    $('#calendar-title').text(data['cal-title']);
-    $('#prev-month').attr('data-year', data.year).attr('data-month', data.month);
-    $('#next-month').attr('data-year', data.year).attr('data-month', data.month);
+    directive['#calendar-title'] = 'cal-title';
+
+    directive['#prev-month@data-year'] = 'year';
+    directive['#prev-month@data-month'] = 'month';
+    directive['#next-month@data-year'] = 'year';
+    directive['#next-month@data-month'] = 'month';
+
+    $p('#cal').render(data, directive);
 
 
-    // today
-    var today = $('.today');
-    if (today.length !== 0) {
-        var heart = feather.icons.heart.toSvg({
-            color: 'red',
-            fill: 'red'
-        });
-        today.css('background-image', 'url(\'data:image/svg+xml;utf8,' + heart + '\')');
-        today.addClass('animated infinite pulse');
-    }
-
-    // half love
-    $('.half-love').each(function () {
-        $(this).css('background-image', 'url(\'data:image/svg+xml;utf8,' + heart + '\')');
+    // 绑定切换按钮
+    $('#prev-month').click(function () {
+        var year = $(this).attr('data-year');
+        var month = $(this).attr('data-month');
+        if(month - 1 >= 1) fetchDays(year, month - 1);
+        else fetchDays(year - 1, 12);
     });
-    // full love
-    $('.full-love').each(function () {
-        var heart = feather.icons.heart.toSvg({
-            color: 'red',
-            fill: 'red'
-        });
-        $(this).css('background-image', 'url(\'data:image/svg+xml;utf8,' + heart + '\')');
-        $(this).addClass('animated infinite pulse');
+    $('#next-month').click(function () {
+        var year = parseInt($(this).attr('data-year'));
+        var month = parseInt($(this).attr('data-month'));
+        if(month + 1 <= 12) fetchDays(year, month + 1);
+        else fetchDays(year + 1, 1);
     });
-
-
-}
-
-function sidebar() {
-    $(document).ready(function () {
-        $('#menu').click(function () {
-            $('.ui.sidebar').sidebar('toggle');
-        });
+    $('#menu').click(function () {
+        $('.ui.sidebar').sidebar('toggle');
     });
-    logout();
+    $('.half-love').popup();
+    $('.full-love').popup();
 }
 
 function logout() {
