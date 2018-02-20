@@ -8,6 +8,7 @@ class User(db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     avatar = db.Column(db.String(128))
     password = db.Column(db.String(128), nullable=False)
+    favorite_color = db.Column(db.CHAR(10), default='#ff0000')
     notes = db.relationship('Note', backref='author', lazy='dynamic')
 
     def __repr__(self):
@@ -27,4 +28,7 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
-        return '<Post {}>'.format(self.content)
+        return '<Post({}) {} {}>'.format(self.author, self.timestamp, self.content)
+
+    def get_timestamp(self):
+        return self.timestamp.strftime('%Y-%m-%d %H:%M')

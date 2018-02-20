@@ -14,16 +14,12 @@
     color: gray;
   }
   .today {
-    background: no-repeat center;
+    @extend %love;
   }
-  %btn {
-    cursor: pointer;
-    transition: background-color 0.5s ease;
+  .half-love, .full-love {
+    @extend %love;
   }
-  %btn:hover {
-    background-color: #3cb0fd;
-    color: white;
-  }
+
   #prev-month {
     @extend %btn;
   }
@@ -34,8 +30,18 @@
     @extend %btn;
   }
 
-  .today {
-    background-size: 6vw;
+  %love {
+    background: no-repeat center;
+    background-size: 6vw 6vw;
+  }
+
+  %btn {
+    cursor: pointer;
+    transition: background-color 0.5s ease;
+  }
+  %btn:hover {
+    background-color: #3cb0fd;
+    color: white;
   }
 }
 

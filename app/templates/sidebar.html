@@ -1,12 +1,27 @@
 {% if u %}
-<div class="ui sidebar inverted vertical labeled icon menu">
-    <a class="item">
-        <img class="ui mini circular image" src="{{ u.avatar }}">
-        {{ u.username|e }}
-    </a>
-    <a class="item">
-        <i class="sign out icon"></i>
-        Logout
-    </a>
-</div>
+    <div class="ui sidebar inverted vertical labeled icon menu">
+        <a class="item">
+            <img class="ui mini centered circular image" src="{{ u.avatar }}">
+            {{ u.username|e }}
+        </a>
+        <a class="item" id="logout">
+            <i class="sign out icon"></i>
+            Logout
+        </a>
+    </div>
+    <div class="ui logout mini modal">
+        <i class="close icon"></i>
+        <div class="header">Logout</div>
+        <div class="content">
+            Do you want to sign out?
+        </div>
+        <div class="actions">
+            <div class="ui approve button">Yes</div>
+            <div class="ui cancel button">No</div>
+        </div>
+    </div>
+
+    <script>
+    sidebar();
+    </script>
 {% endif %}
