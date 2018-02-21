@@ -94,6 +94,7 @@ def cal(year=None, month=None):
             while noteidx < len(notes) and notes[noteidx].timestamp.date() == d:
                 n = notes[noteidx]
                 note = {
+                    'id': n.id,
                     'author': n.author.username,
                     'avatar': n.author.avatar,
                     'content': n.content,
@@ -104,10 +105,10 @@ def cal(year=None, month=None):
                 noteidx+=1
 
             if len(daily_user) == 1:
-                day['style'] = 'half-love'
+                day['style'] = 'half-love markday'
                 day['mark_color'] = daily_user.pop()[1]
             elif len(daily_user) == 2:
-                day['style'] = 'full-love'
+                day['style'] = 'full-love markday'
 
             days.append(day)
 

@@ -11,6 +11,7 @@
   #cal .other-day {
     color: gray; }
   #cal .today, #cal .half-love, #cal .full-love {
+    cursor: pointer;
     background: no-repeat center;
     background-size: 6vw 6vw; }
   #cal #prev-month, #cal #next-month, #cal .menu {
@@ -19,6 +20,9 @@
   #cal #prev-month:hover, #cal #next-month:hover, #cal .menu:hover {
     background-color: #3cb0fd;
     color: white; }
+
+.note-content {
+  font-size: 20px; }
 
 .unselectable {
   -webkit-touch-callout: none;

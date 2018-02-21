@@ -31,6 +31,7 @@
   }
 
   %love {
+    cursor: pointer;
     background: no-repeat center;
     background-size: 6vw 6vw;
   }
@@ -43,6 +44,10 @@
     background-color: #3cb0fd;
     color: white;
   }
+}
+
+.note-content {
+  font-size: 20px;
 }
 
 .unselectable {

@@ -49,7 +49,7 @@ function renderCal(data) {
             '.': 'day.day',
             '@class': function (d) {
                 switch(d.item.style) {
-                    case 'full-love':
+                    case 'full-love markday':
                         return d.item.style + ' animated infinite pulse';
                     default:
                         return d.item.style;
@@ -57,12 +57,15 @@ function renderCal(data) {
             },
             '@style': function (d) {
                 switch(d.item.style) {
-                    case 'half-love':
+                    case 'today':
+                        var heart = feather.icons.heart.toSvg();
+                        return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
+                    case 'half-love markday':
                         var heart = feather.icons.heart.toSvg({
                             color: d.item['mark_color']
                         });
                         return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
-                    case 'full-love':
+                    case 'full-love markday':
                         var heart = feather.icons.heart.toSvg({
                             color: 'red',
                             fill: 'red'
@@ -74,7 +77,7 @@ function renderCal(data) {
                 html = '';
                 notes = d.item.notes;
                 if (notes.length > 0) {
-                    html += '<div class="ui  feed">';
+                    html += '<div class="ui feed">';
                     for(var i = 0; i < notes.length; ++i) {
                         note = notes[i];
                         html +=
@@ -89,8 +92,8 @@ function renderCal(data) {
                                         note.timestamp +
                             '        </div>\n' +
                             '      </div>\n' +
-                            '      <div class="extra text">\n' +
-                                        note.content.substring(0, 30) + '...' +
+                            '      <div class="note-content text">\n' +
+                                        markdown.toHTML(note.content) +
                             '      </div>\n' +
                             '    </div>\n' +
                             '  </div>'
@@ -98,6 +101,9 @@ function renderCal(data) {
                     html += '</div>';
                 }
                 return html;
+            },
+            '@data-date': function (d) {
+                return d.context.year + '-' + d.context.month + '-' + d.item.day;
             }
         };
         directive['#week'+i+' td'] = week;
@@ -128,13 +134,22 @@ function renderCal(data) {
     $('#menu').click(function () {
         $('.ui.sidebar').sidebar('toggle');
     });
-    $('.half-love').popup();
-    $('.full-love').popup();
+    $('.markday').click(function () {
+        $('.detail.modal .header').text($(this).attr('data-date'));
+        $('.detail.modal .content').html($(this).attr('data-html'));
+        $('.detail.modal').modal('show');
+    })
+
+    // $('.markday').popup({
+    //     hoverable: true,
+    //     preserve: true
+    // });
 }
 
 function logout() {
     $('#logout').click(function () {
         $('.logout.modal').modal({
+            centered: false,
             blurring: true,
             closable  : true,
             onDeny    : function(){
