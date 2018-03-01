@@ -1,8 +1,6 @@
 cal_api = '/api/'
 
 function fetchDays(year, month) {
-    for(var i = 0; i < 6; ++i)
-        $('#week'+i).html('<td></td>')
 
     var url = cal_api + 'cal/';
     if(typeof year !== 'undefined') url += year + '/' + month;
@@ -25,14 +23,10 @@ function login() {
                 username: username,
                 password: password
             }).done(function (data) { // login success
-                console.log(data);
-                if(data.status_code == 0)
-                    location.reload();
-                else
-                    alert('Login failed!')
+                if(data.status_code == 0) location.reload();
+                else alert('Login failed!')
             })
-        } else
-            alert('please input password!')
+        } else alert('please input password!')
 
     });
 
@@ -42,126 +36,143 @@ function login() {
 
 function renderCal(data) {
     console.log(data);
-    var directive = {};
-    for(var i = 0; i < 6; ++i) {
-        week = {};
-        week['day<-week'+i] =  {
-            '.': 'day.day',
-            '@class': function (d) {
-                switch(d.item.style) {
-                    case 'full-love markday':
-                        return d.item.style + ' animated infinite pulse';
-                    default:
-                        return d.item.style;
-                }
-            },
-            '@style': function (d) {
-                switch(d.item.style) {
-                    case 'today':
-                        var heart = feather.icons.heart.toSvg();
-                        return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
-                    case 'half-love markday':
-                        var heart = feather.icons.heart.toSvg({
-                            color: d.item['mark_color']
-                        });
-                        return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
-                    case 'full-love markday':
-                        var heart = feather.icons.heart.toSvg({
-                            color: 'red',
-                            fill: 'red'
-                        });
-                        return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
-                }
-            },
-            '@data-html': function (d) {
-                html = '';
-                notes = d.item.notes;
-                if (notes.length > 0) {
-                    html += '<div class="ui feed">';
-                    for(var i = 0; i < notes.length; ++i) {
-                        note = notes[i];
-                        html +=
-                            '  <div class="event">\n' +
-                            '    <div class="label">\n' +
-                            '      <img src="' + note.avatar + '">\n' +
-                            '    </div>\n' +
-                            '    <div class="content">\n' +
-                            '      <div class="summary">\n' +
-                            '        <a>' + note.author + '</a> 添加了动态' +
-                            '        <div class="date">\n' +
-                                        note.timestamp +
-                            '        </div>\n' +
-                            '      </div>\n' +
-                            '      <div class="note-content text">\n' +
-                                        markdown.toHTML(note.content) +
-                            '      </div>\n' +
-                            '    </div>\n' +
-                            '  </div>'
-                    }
-                    html += '</div>';
-                }
-                return html;
-            },
-            '@data-date': function (d) {
-                return d.context.year + '-' + d.context.month + '-' + d.item.day;
-            }
+
+    if (typeof renderCal.compiled === 'undefined') {
+        var directive = {
+            '#calendar-title': 'cal-title',
+            '#calendar-title@data-year': 'year',
+            '#calendar-title@data-month': 'month'
         };
-        directive['#week'+i+' td'] = week;
+        for (var i = 0; i < 6; ++i) {
+            var week = {};
+            week['day<-week' + i] = {
+                '.': 'day.day',
+                '@class': function (d) {
+                    switch (d.item.style) {
+                        case 'full-love markday':
+                            return d.item.style + ' animated infinite pulse';
+                        default:
+                            return d.item.style;
+                    }
+                },
+                '@style': function (d) {
+                    switch (d.item.style) {
+                        case 'today':
+                            var heart = feather.icons.heart.toSvg();
+                            return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
+                        case 'half-love markday':
+                            var heart = feather.icons.heart.toSvg({
+                                color: d.item['mark_color']
+                            });
+                            return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
+                        case 'full-love markday':
+                            var heart = feather.icons.heart.toSvg({
+                                color: 'red',
+                                fill: 'red'
+                            });
+                            return 'background-image: url(\'data:image/svg+xml;utf8,' + heart + '\')';
+                    }
+                },
+                '@data-date': function (d) {
+                    return d.item.year + '-' + d.item.month + '-' + d.item.day;
+                }
+            };
+            directive['#week' + i + ' td'] = week;
+        }
+
+        renderCal.compiled = $p('#cal').compile(directive);
     }
-    directive['#calendar-title'] = 'cal-title';
 
-    directive['#prev-month@data-year'] = 'year';
-    directive['#prev-month@data-month'] = 'month';
-    directive['#next-month@data-year'] = 'year';
-    directive['#next-month@data-month'] = 'month';
-
-    $p('#cal').render(data, directive);
+    $p('#cal').render(data, renderCal.compiled);
 
 
-    // 绑定切换按钮
+    // 绑定按钮事件
+    renderCal.year = parseInt($('#calendar-title').attr('data-year'));
+    renderCal.month = parseInt($('#calendar-title').attr('data-month'));
     $('#prev-month').click(function () {
-        var year = $(this).attr('data-year');
-        var month = $(this).attr('data-month');
-        if(month - 1 >= 1) fetchDays(year, month - 1);
-        else fetchDays(year - 1, 12);
+        if(renderCal.month - 1 >= 1) fetchDays(renderCal.year, renderCal.month - 1);
+        else fetchDays(renderCal.year - 1, 12);
     });
     $('#next-month').click(function () {
-        var year = parseInt($(this).attr('data-year'));
-        var month = parseInt($(this).attr('data-month'));
-        if(month + 1 <= 12) fetchDays(year, month + 1);
-        else fetchDays(year + 1, 1);
+        if(renderCal.month + 1 <= 12) fetchDays(renderCal.year, renderCal.month + 1);
+        else fetchDays(renderCal.year + 1, 1);
     });
     $('#menu').click(function () {
         $('.ui.sidebar').sidebar('toggle');
     });
     $('.markday').click(function () {
-        $('.detail.modal .header').text($(this).attr('data-date'));
-        $('.detail.modal .content').html($(this).attr('data-html'));
-        $('.detail.modal').modal('show');
-    })
+        var date = $(this).attr('data-date');
+        $('.detail.modal .header').text(date);
+        date = date.split('-');
+        fetchNotes(date[0], date[1], date[2]);
+    });
+}
 
-    // $('.markday').popup({
-    //     hoverable: true,
-    //     preserve: true
-    // });
+function fetchNotes(year, month, day) {
+    var url = cal_api + 'note/' + year + '/' + month + '/' + day;
+    if (typeof fetchNotes.compiled === 'undefined') {
+        var directive = {
+            '.event': {
+                'note<-notes': {
+                    '.avatar@src': 'note.avatar',
+                    '.name': 'note.author',
+                    '.date': 'note.timestamp',
+                    '.delete-note@data-note-id': 'note.id',
+                    '.note-content': function (d) {
+                        return markdown.toHTML(d.item.content);
+                    }
+                }
+            }
+        };
+        fetchNotes.compiled = $p('.detail.modal .feed').compile(directive);
+    }
+
+    $.getJSON(url).done(function (data) {
+        console.log(data);
+        $p('.detail.modal .feed').render(data, fetchNotes.compiled);
+        $('.detail.modal').modal('show');
+
+        // delete note
+        $('.delete-note').click(function () {
+            $('.dialog.modal .header').text('Delete Note');
+            $('.dialog.modal .content').text('Do you want to delete it?');
+            var note = $(this);
+            showDialog(function () {
+                // delete finished
+                var del_note_url = cal_api + 'note/' + note.attr('data-note-id') + '/delete';
+                $.post(del_note_url).done(function (data) {
+                    if(data.status_code == 0) {
+                        note.parents('.event').remove();
+                        fetchDays(renderCal.year, renderCal.month);
+                    }
+                });
+            });
+
+        });
+    });
+
+
 }
 
 function logout() {
     $('#logout').click(function () {
-        $('.logout.modal').modal({
-            centered: false,
-            blurring: true,
-            closable  : true,
-            onDeny    : function(){
-                return true;
-            },
-            onApprove : function() {
-                var url = cal_api + 'logout';
-                $.getJSON(url).done(function (data) {
-                    if(data.status_code == 0)
-                        location.reload();
-                });
-            }
-        }).modal('show');
+        $('.dialog.modal .header').text('Logout');
+        $('.dialog.modal .content').text('Do you want to sign out?');
+        showDialog(function() {
+            var url = cal_api + 'logout';
+            $.getJSON(url).done(function (data) {
+                if(data.status_code == 0)
+                    location.reload();
+            });
+        });
     });
+}
+
+function showDialog(approve) {
+    $('.dialog.modal').modal({
+        allowMultiple: true,
+        blurring  : true,
+        closable  : true,
+        onApprove : approve
+    }).modal('show');
 }

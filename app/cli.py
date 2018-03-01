@@ -46,7 +46,7 @@ def fake_notes():
     u1 = User.query.all()[0]
     u2 = User.query.all()[1]
     for i in range(20):
-        fake_date = datetime(year, month, randint(1, 31), randint(1, 24), randint(0, 59))
+        fake_date = datetime(year, month, randint(1, 31), randint(0, 23), randint(0, 59))
         note = Note(content='这是一条测试的内容！', timestamp=fake_date)
         note.author = u1 if randint(0, 1) else u2
         db.session.add(note)

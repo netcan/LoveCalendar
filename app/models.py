@@ -24,11 +24,14 @@ class User(db.Model):
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.UnicodeText, nullable=False)
-    timestamp = db.Column(db.DateTime, index=True, default=lambda tz=app.config['TIMEZONE']: datetime.now(tz))
+    timestamp = db.Column(db.DateTime, index=True, default=(lambda tz=app.config['TIMEZONE']: datetime.now(tz)))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    deleted = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return '<Post({}) {} {}>'.format(self.author, self.timestamp, self.content)
+        return '<Post#{}({}) {} {}>'.format(
+            self.id, self.author, self.timestamp, self.content
+        )
 
     def get_timestamp(self):
         return self.timestamp.strftime('%Y-%m-%d %H:%M')

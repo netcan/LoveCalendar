@@ -1,13 +1,26 @@
 from flask import render_template, session, request, jsonify
-from datetime import date
-from app import app
+from datetime import date, timedelta
+from app import app, db
 from app.models import User, Note
+from functools import wraps
 import calendar
+
+
+def login_required(func):
+    """ 登陆检查装饰器 """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # 未进行登陆
+        if not session.get('username'):
+            return jsonify(status_code=1)
+        return func(*args, **kwargs)
+    return wrapper
 
 
 @app.route("/")
 @app.route("/index")
 def index():
+    """ 主页面 """
     if session.get('username'):
         u = User.query.filter_by(username=session['username']).first()
         return render_template("index.html", u=u)
@@ -19,6 +32,7 @@ def index():
 @app.route("/api/login", methods=['POST'])
 def login():
     """
+    登陆
     status_code: 0表示成功，1表示失败
     """
     ret = {'status_code': 1}
@@ -39,6 +53,7 @@ def login():
 
 @app.route("/api/logout")
 def logout():
+    """ 注销 """
     session.pop('username', None)
     ret = {'status_code': 0}
     return jsonify(**ret)
@@ -46,13 +61,10 @@ def logout():
 
 @app.route("/api/cal/")
 @app.route("/api/cal/<int:year>/<int:month>")
+@login_required
 def cal(year=None, month=None):
-    """
-    返回当前月份的天数
-    """
-    ret = {'status_code': 1}
-    if not session.get('username'):
-        return jsonify(**ret)
+    """ 返回当前月份的日历 """
+    ret = {'status_code': 0}
 
     today = date.today()
     if year is None or not (1 <= month <= 12):
@@ -72,15 +84,19 @@ def cal(year=None, month=None):
             monthdates.append(w)
     # 获取当月的所有记录
     startTime = monthdates[0][0]
-    endTime = monthdates[5][-1]
-    notes = Note.query.filter(Note.timestamp.between(startTime, endTime)) \
-        .order_by(Note.timestamp).all()
+    endTime = monthdates[5][-1] + timedelta(days=1)
+    notes = Note.query.filter_by(deleted=False) \
+        .filter(Note.timestamp.between(startTime, endTime)) \
+        .order_by(Note.timestamp)\
+        .all()
     noteidx = 0
 
     days = []
     for w in monthdates:
         for d in w:
             day = {
+                'year': d.year,
+                'month': d.month,
                 'day': d.day,
                 'style': 'day',
                 'notes': []
@@ -93,16 +109,8 @@ def cal(year=None, month=None):
             daily_user = set()
             while noteidx < len(notes) and notes[noteidx].timestamp.date() == d:
                 n = notes[noteidx]
-                note = {
-                    'id': n.id,
-                    'author': n.author.username,
-                    'avatar': n.author.avatar,
-                    'content': n.content,
-                    'timestamp': n.get_timestamp()
-                }
                 daily_user.add((n.author.username, n.author.favorite_color))
-                day['notes'].append(note)
-                noteidx+=1
+                noteidx += 1
 
             if len(daily_user) == 1:
                 day['style'] = 'half-love markday'
@@ -118,6 +126,43 @@ def cal(year=None, month=None):
     ret["cal-title"] = calendar.month_name[month] + ' ' + str(year)
     ret["year"] = year
     ret["month"] = month
-    ret["status_code"] = 0
 
     return jsonify(**ret)
+
+
+@app.route("/api/note/<int:year>/<int:month>/<int:day>")
+@login_required
+def get_notes(year, month, day):
+    """ 获取当天的记录 """
+    ret = {'status_code': 0,
+           'notes': []}
+    try:
+        notes_day = date(year, month, day)
+        notes = Note.query.filter_by(deleted=False)\
+            .filter(Note.timestamp.between(notes_day, notes_day + timedelta(days=1))) \
+            .order_by(Note.timestamp)\
+            .all()
+        ret['notes'] = [{
+            'id': note.id,
+            'author': note.author.username,
+            'avatar': note.author.avatar,
+            'content': note.content,
+            'timestamp': note.get_timestamp()
+        } for note in notes]
+    except ValueError:
+        pass
+
+    return jsonify(**ret)
+
+
+@app.route("/api/note/<int:id>/delete", methods=['POST'])
+@login_required
+def del_note(id):
+    """ 删除指定id的note记录 """
+    ret = {'status_code': 0}
+    note = Note.query.get(id)
+    db.session.delete(note)
+    db.session.commit()
+    return jsonify(**ret)
+
+
