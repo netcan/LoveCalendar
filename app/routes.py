@@ -1,5 +1,5 @@
 from flask import render_template, session, request, jsonify
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 from app import app, db
 from app.models import User, Note
 from functools import wraps
@@ -130,7 +130,7 @@ def cal(year=None, month=None):
     return jsonify(**ret)
 
 
-@app.route("/api/note/<int:year>/<int:month>/<int:day>")
+@app.route("/api/notes/<int:year>/<int:month>/<int:day>")
 @login_required
 def get_notes(year, month, day):
     """ 获取当天的记录 """
@@ -147,7 +147,8 @@ def get_notes(year, month, day):
             'author': note.author.username,
             'avatar': note.author.avatar,
             'content': note.content,
-            'timestamp': note.get_timestamp()
+            'timestamp': note.get_timestamp(),
+            'editable': note.author.username == session.get('username')
         } for note in notes]
     except ValueError:
         pass
@@ -159,10 +160,46 @@ def get_notes(year, month, day):
 @login_required
 def del_note(id):
     """ 删除指定id的note记录 """
-    ret = {'status_code': 0}
     note = Note.query.get(id)
-    db.session.delete(note)
-    db.session.commit()
-    return jsonify(**ret)
+    if note.author.username == session.get('username'):
+        db.session.delete(note)
+        db.session.commit()
+        return jsonify(status_code=0)
 
+    return jsonify(status_code=1)
+
+
+@app.route("/api/note/<int:id>/update", methods=['POST'])
+@login_required
+def update_note(id):
+    """ 根据id更新note """
+    note = Note.query.get(id)
+    content = request.form.get('content', None)
+    if not content or not note or note.author.username != session.get('username'):
+        return jsonify(status_code=1)
+    note.content = content
+    note.last_updated = datetime.now(app.config['TIMEZONE'])
+    db.session.commit()
+    return jsonify(status_code=0)
+
+
+@app.route("/api/note/<int:id>", methods=['GET'])
+@login_required
+def get_note(id):
+    """ 根据id获取note """
+    note = Note.query.get(id)
+    if not note:
+        return jsonify(status_code=1)
+    ret = {
+        'status_code': 0,
+        'note': {
+            'id': note.id,
+            'author': note.author.username,
+            'avatar': note.author.avatar,
+            'content': note.content,
+            'timestamp': note.get_timestamp(),
+            'editable': note.author.username == session.get('username')
+        }
+    }
+    return jsonify(**ret)
 

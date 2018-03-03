@@ -109,7 +109,7 @@ function renderCal(data) {
 }
 
 function fetchNotes(year, month, day) {
-    var url = cal_api + 'note/' + year + '/' + month + '/' + day;
+    var url = cal_api + 'notes/' + year + '/' + month + '/' + day;
     if (typeof fetchNotes.compiled === 'undefined') {
         var directive = {
             '.event': {
@@ -117,7 +117,12 @@ function fetchNotes(year, month, day) {
                     '.avatar@src': 'note.avatar',
                     '.name': 'note.author',
                     '.date': 'note.timestamp',
+                    '.meta@style': function (d) {
+                        return d.item.editable?'':'display:none';
+                    },
                     '.delete-note@data-note-id': 'note.id',
+                    '.edit-note@data-note-id': 'note.id',
+                    '.note-content@data-note-id': 'note.id',
                     '.note-content': function (d) {
                         return markdown.toHTML(d.item.content);
                     }
@@ -128,7 +133,6 @@ function fetchNotes(year, month, day) {
     }
 
     $.getJSON(url).done(function (data) {
-        console.log(data);
         $p('.detail.modal .feed').render(data, fetchNotes.compiled);
         $('.detail.modal').modal('show');
 
@@ -147,8 +151,35 @@ function fetchNotes(year, month, day) {
                     }
                 });
             });
-
         });
+
+        // edit note
+        $('.edit-note').click(function () {
+            var note = $(this);
+            var get_note_url = cal_api + 'note/' + note.attr('data-note-id');
+            var update_note_url = cal_api + 'note/' + note.attr('data-note-id') + '/update';
+            $.getJSON(get_note_url).done(function (data) {
+                if(data.status_code == 0) {
+                    $('.editor.modal textarea').val(data.note.content);
+                    $('.editor.modal .approve.button').text('Update');
+                    showEditor(function () {
+                        var content = $('.editor.modal textarea').val();
+                        $.post(update_note_url, {
+                            content: content
+                        }).done(function (data) { // login success
+                            if(data.status_code == 0) {
+                                $('.detail.modal .feed .note-content[data-note-id='+ note.attr('data-note-id') +']').html(
+                                    markdown.toHTML(content)
+                                );
+                                return true;
+                            }
+                        })
+                    });
+                }
+            });
+
+
+        })
     });
 
 
@@ -173,6 +204,14 @@ function showDialog(approve) {
         allowMultiple: true,
         blurring  : true,
         closable  : true,
+        onApprove : approve
+    }).modal('show');
+}
+
+
+function showEditor(approve) {
+    $('.editor.modal').modal({
+        allowMultiple: true,
         onApprove : approve
     }).modal('show');
 }

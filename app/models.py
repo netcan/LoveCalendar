@@ -25,6 +25,7 @@ class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.UnicodeText, nullable=False)
     timestamp = db.Column(db.DateTime, index=True, default=(lambda tz=app.config['TIMEZONE']: datetime.now(tz)))
+    last_updated = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     deleted = db.Column(db.Boolean, default=False)
 
