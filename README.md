@@ -16,7 +16,7 @@ $ cd LoveCalendar
 
 ### Install python and its dependence
 ```sh
-$ virtualenv flask
+$ virtualenv -p python3 flask
 $ source flask/bin/activate
 (flask) $ pip install -r requirements.txt
 ```
@@ -30,7 +30,7 @@ On MacOX:
 (flask) $ brew services start postgresql
 ```
 
-Then create and edit the `app/calendar_settings.cfg`, set the `SQLALCHEMY_DATABASE_URI` field to yours. I use `development` for the pgsql user name and `lovecalendar` for the database name.
+Then create and edit the `app/calendar_settings.cfg` if you want to set own private config, set the `SQLALCHEMY_DATABASE_URI` field to yours. I use `development` for the pgsql user name and `lovecalendar` for the database name.
 
 ```sh
 (flask) $ export CALENDAR_SETTINGS=calendar_settings.cfg
@@ -38,7 +38,7 @@ Then create and edit the `app/calendar_settings.cfg`, set the `SQLALCHEMY_DATABA
 (flask) $ createdb lovecalendar -U development
 ```
 
-For example, there is the `app/calendar_settings.cfg` file:
+For example, there is the private `app/calendar_settings.cfg` file:
 
 ```python
 from app import app

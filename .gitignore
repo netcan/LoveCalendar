@@ -3,4 +3,6 @@ __pycache__
 *.db
 *.map
 /flask
+/app/static/images/netcan.jpg
+/app/static/images/memory.jpg
 /app/calendar_settings.cfg

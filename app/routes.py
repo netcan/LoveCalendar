@@ -25,7 +25,7 @@ def index():
         u = User.query.filter_by(username=session['username']).first()
         return render_template("index.html", u=u)
     else:
-        users = User.query.all()
+        users = User.query.all()[:2]
         return render_template("login.html", users=users)
 
 
