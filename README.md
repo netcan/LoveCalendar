@@ -14,6 +14,13 @@ $ git clone https://github.com/netcan/LoveCalendar.git
 $ cd LoveCalendar
 ```
 
+### Install python and its dependence
+```sh
+$ virtualenv flask
+$ source flask/bin/activate
+(flask) $ pip install -r requirements.txt
+```
+
 ### Postgresql
 To install postgresql:
 
@@ -31,7 +38,7 @@ $ createdb lovecalendar -U development
 ```
 
 ### Init database
-run command belove:
+Run command belove:
 ```sh
 $ export FLASK_APP=LoveCalendar.py
 $ flask db upgrade
