@@ -4,6 +4,10 @@
             <img class="ui mini centered circular image" src="{{ u.avatar }}">
             {{ u.username|e }}
         </a>
+        <a class="item" id="write-note">
+            <i class="pencil alternate icon"></i>
+            Write
+        </a>
         <a class="item" id="logout">
             <i class="sign out icon"></i>
             Logout
@@ -11,6 +15,6 @@
     </div>
 
     <script>
-        logout();
+    sidebar();
     </script>
 {% endif %}

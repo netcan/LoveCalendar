@@ -156,6 +156,7 @@ def get_notes(year, month, day):
     return jsonify(**ret)
 
 
+
 @app.route("/api/note/<int:id>/delete", methods=['POST'])
 @login_required
 def del_note(id):
@@ -183,6 +184,20 @@ def update_note(id):
     return jsonify(status_code=0)
 
 
+@app.route("/api/note/new", methods=['POST'])
+@login_required
+def add_note():
+    content = request.form.get('content', None)
+    if not content:
+        return jsonify(status_code=1)
+    author = User.query.filter_by(username=session.get('username')).first()
+    note = Note(content=content, author=author)
+    db.session.add(note)
+    db.session.commit()
+    return jsonify(status_code=0)
+
+
+
 @app.route("/api/note/<int:id>", methods=['GET'])
 @login_required
 def get_note(id):
@@ -202,4 +217,5 @@ def get_note(id):
         }
     }
     return jsonify(**ret)
+
 

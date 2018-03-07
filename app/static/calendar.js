@@ -185,7 +185,33 @@ function fetchNotes(year, month, day) {
 
 }
 
-function logout() {
+function sidebar() {
+    // write note
+    $('#write-note').click(function () {
+        $('.editor.modal textarea').val(localStorage.getItem('new-note'));
+        $('.editor.modal .approve.button').text('Biu');
+        var autosave = setInterval(function () {
+            localStorage.setItem('new-note', $('.editor.modal textarea').val());
+        }, 1000);
+        var stop_autosave = function () {
+            clearInterval(autosave);
+        };
+        showEditor(function () {
+            var new_note_url = cal_api + 'note/new';
+            var content = $('.editor.modal textarea').val();
+            $.post(new_note_url, {
+                content: content
+            }).done(function (data) { // login success
+                if(data.status_code == 0) {
+                    fetchDays(renderCal.year, renderCal.month);
+                    localStorage.removeItem('new-note');
+                    return true;
+                }
+            })
+        }, stop_autosave, stop_autosave);
+    });
+
+    // logout
     $('#logout').click(function () {
         $('.dialog.modal .header').text('Logout');
         $('.dialog.modal .content').text('Do you want to sign out?');
@@ -209,9 +235,11 @@ function showDialog(approve) {
 }
 
 
-function showEditor(approve) {
+function showEditor(approve, deny, hide) {
     $('.editor.modal').modal({
         allowMultiple: true,
-        onApprove : approve
+        onApprove : approve,
+        onDeny: deny,
+        onHidden: hide
     }).modal('show');
 }
