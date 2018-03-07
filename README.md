@@ -21,27 +21,36 @@ $ source flask/bin/activate
 (flask) $ pip install -r requirements.txt
 ```
 
-### Postgresql
+### Postgresql(Optional)
 To install postgresql:
 
 On MacOX:
 ```sh
-$ brew install postgres
-$ brew services start postgresql
+(flask) $ brew install postgres
+(flask) $ brew services start postgresql
 ```
 
-Then edit the `config.py`, change the `SQLALCHEMY_DATABASE_URI` field to yours. I use `development` for pgsql user name and `lovecalendar` for database name.
+Then create and edit the `app/calendar_settings.cfg`, set the `SQLALCHEMY_DATABASE_URI` field to yours. I use `development` for the pgsql user name and `lovecalendar` for the database name.
 
 ```sh
-$ createuser development --createdb
-$ createdb lovecalendar -U development
+(flask) $ export CALENDAR_SETTINGS=calendar_settings.cfg
+(flask) $ createuser development --createdb
+(flask) $ createdb lovecalendar -U development
+```
+
+For example, there is the `app/calendar_settings.cfg` file:
+
+```python
+from app import app
+SQLALCHEMY_DATABASE_URI = 'postgresql://development@localhost/lovecalendar'
+app.config.from_object(__name__)
 ```
 
 ### Init database
 Run command belove:
 ```sh
-$ export FLASK_APP=LoveCalendar.py
-$ flask db upgrade
+(flask) $ export FLASK_APP=LoveCalendar.py
+(flask) $ flask db upgrade
 ```
 
 ### Init app and run

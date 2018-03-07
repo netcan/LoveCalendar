@@ -3,3 +3,4 @@ __pycache__
 *.db
 *.map
 /flask
+/app/calendar_settings.cfg
