@@ -142,7 +142,7 @@ def cal(year=None, month=None):
     return jsonify(**ret)
 
 
-@app.route("/api/notes/<int:year>/<int:month>/<int:day>")
+@app.route("/api/notes/<int:year>/<int:month>/<int:day>", methods=["GET"])
 @login_required
 def get_notes(year, month, day):
     """ 获取当天的记录 """
@@ -150,9 +150,9 @@ def get_notes(year, month, day):
            'notes': []}
     now = datetime.now(app.config['TIMEZONE'])
     try:
-        notes_day = date(year, month, day)
+        notes_day = datetime(year, month, day)
         notes = Note.query.filter_by(deleted=False)\
-            .filter(Note.timestamp.between(notes_day, notes_day + timedelta(days=1))) \
+            .filter(Note.timestamp.between(notes_day, notes_day + timedelta(days=1) - timedelta(seconds=1))) \
             .order_by(Note.timestamp)\
             .all()
         ret['notes'] = [{
@@ -206,14 +206,20 @@ def update_note(id):
     return jsonify(status_code=0)
 
 
+@app.route("/api/note/<int:year>/<int:month>/<int:day>/new", methods=["POST"])
 @app.route("/api/note/new", methods=['POST'])
 @login_required
-def add_note():
+def add_note(year=None, month=None, day=None):
+    timestamp = None
+    if year and month and day:
+        now_time = datetime.now(app.config['TIMEZONE'])
+        timestamp = datetime(year, month, day, now_time.hour, now_time.minute, now_time.second)
+
     content = request.form.get('content', None)
     if not content:
         return jsonify(status_code=1)
     author = User.query.get(session.get('user_id'))
-    note = Note(content=content, author=author)
+    note = Note(content=content, author=author, timestamp=timestamp)
     db.session.add(note)
     db.session.commit()
 

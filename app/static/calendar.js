@@ -35,6 +35,8 @@ function login() {
 }
 
 function renderCal(data) {
+    renderCal.year = parseInt(data.year);
+    renderCal.month = parseInt(data.month);
     console.log(data);
 
     if (typeof renderCal.compiled === 'undefined') {
@@ -87,8 +89,6 @@ function renderCal(data) {
 
 
     // 绑定按钮事件
-    renderCal.year = parseInt($('#calendar-title').attr('data-year'));
-    renderCal.month = parseInt($('#calendar-title').attr('data-month'));
     $('#prev-month').click(function () {
         if(renderCal.month - 1 >= 1) fetchDays(renderCal.year, renderCal.month - 1);
         else fetchDays(renderCal.year - 1, 12);
@@ -102,13 +102,13 @@ function renderCal(data) {
     });
     $('.markday').click(function () {
         var date = $(this).attr('data-date');
-        $('.detail.modal .header').text(date);
         date = date.split('-');
         fetchNotes(date[0], date[1], date[2]);
     });
 }
 
 function fetchNotes(year, month, day) {
+    // show note list
     var url = cal_api + 'notes/' + year + '/' + month + '/' + day;
     if (typeof fetchNotes.compiled === 'undefined') {
         var directive = {
@@ -134,7 +134,16 @@ function fetchNotes(year, month, day) {
 
     $.getJSON(url).done(function (data) {
         $p('.detail.modal .feed').render(data, fetchNotes.compiled);
-        $('.detail.modal').modal('show');
+        $('.detail.modal .header').text(year + '-' + month + '-' + day);
+
+        $('.detail.modal').modal({
+            onApprove: function () {
+                addNote(year, month, day);
+                return false;
+            }
+        }).modal('show');
+
+        $('.detail.modal .scrolling.content').scrollTop(0);
 
         // delete note
         $('.delete-note').click(function () {
@@ -147,7 +156,7 @@ function fetchNotes(year, month, day) {
                 $.post(del_note_url).done(function (data) {
                     if(data.status_code == 0) {
                         note.parents('.event').remove();
-                        // fetchDays(renderCal.year, renderCal.month);
+                        fetchDays(renderCal.year, renderCal.month);
                     }
                 });
             });
@@ -185,31 +194,39 @@ function fetchNotes(year, month, day) {
 
 }
 
+function addNote(year, month, day) {
+    $('.editor.modal textarea').val(localStorage.getItem('new-note'));
+    $('.editor.modal .approve.button').text('Biu');
+    var autosave = setInterval(function () {
+        localStorage.setItem('new-note', $('.editor.modal textarea').val());
+    }, 1000);
+    var stop_autosave = function () {
+        clearInterval(autosave);
+    };
+    showEditor(function () {
+        var new_note_url = cal_api + 'note/new';
+        if(typeof year !== 'undefined')
+            new_note_url = cal_api + 'note/' + year + '/' + month + '/' + day + '/new';
+
+
+        var content = $('.editor.modal textarea').val();
+        return $.post(new_note_url, {
+            content: content
+        }).done(function (data) {
+            if(data.status_code == 0) { // add success
+                fetchDays(renderCal.year, renderCal.month);
+                localStorage.removeItem('new-note');
+                return true;
+            } else return false;
+        })
+    }, stop_autosave, stop_autosave);
+}
+
 function sidebar() {
-    // write note
-    $('#write-note').click(function () {
-        $('.editor.modal textarea').val(localStorage.getItem('new-note'));
-        $('.editor.modal .approve.button').text('Biu');
-        var autosave = setInterval(function () {
-            localStorage.setItem('new-note', $('.editor.modal textarea').val());
-        }, 1000);
-        var stop_autosave = function () {
-            clearInterval(autosave);
-        };
-        showEditor(function () {
-            var new_note_url = cal_api + 'note/new';
-            var content = $('.editor.modal textarea').val();
-            $.post(new_note_url, {
-                content: content
-            }).done(function (data) { // login success
-                if(data.status_code == 0) {
-                    // fetchDays(renderCal.year, renderCal.month);
-                    localStorage.removeItem('new-note');
-                    return true;
-                }
-            })
-        }, stop_autosave, stop_autosave);
-    });
+    // write note(add note)
+    $('#write-note').click(
+        addNote
+    );
 
     // logout
     $('#logout').click(function () {
