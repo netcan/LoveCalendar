@@ -224,9 +224,9 @@ function addNote(year, month, day) {
 
 function sidebar() {
     // write note(add note)
-    $('#write-note').click(
-        addNote
-    );
+    $('#write-note').click(function () {
+        addNote();
+    });
 
     // logout
     $('#logout').click(function () {
