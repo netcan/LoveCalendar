@@ -1,4 +1,4 @@
-cal_api = '/api/'
+cal_api = '/api/';
 
 function fetchDays(year, month) {
 
@@ -147,7 +147,7 @@ function fetchNotes(year, month, day) {
                 $.post(del_note_url).done(function (data) {
                     if(data.status_code == 0) {
                         note.parents('.event').remove();
-                        fetchDays(renderCal.year, renderCal.month);
+                        // fetchDays(renderCal.year, renderCal.month);
                     }
                 });
             });
@@ -203,7 +203,7 @@ function sidebar() {
                 content: content
             }).done(function (data) { // login success
                 if(data.status_code == 0) {
-                    fetchDays(renderCal.year, renderCal.month);
+                    // fetchDays(renderCal.year, renderCal.month);
                     localStorage.removeItem('new-note');
                     return true;
                 }

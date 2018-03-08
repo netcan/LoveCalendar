@@ -35,6 +35,9 @@
     {% include 'detail.html' %}
     {% include 'editor.html' %}
     <script>
-        fetchDays();
+    fetchDays();
+        setInterval(function() {
+            fetchDays(renderCal.year, renderCal.month);
+        }, 3000);
     </script>
 {% endblock %}

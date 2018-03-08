@@ -2,8 +2,10 @@ from flask import render_template, session, request, jsonify
 from datetime import datetime, date, timedelta
 from app import app, db
 from app.models import User, Note
+from app.email import send_mail
 from functools import wraps
-import calendar, humanize
+from markdown import markdown
+import calendar, humanize, threading
 
 
 def relative_time(note, now_time=datetime.now(app.config['TIMEZONE'])):
@@ -11,6 +13,16 @@ def relative_time(note, now_time=datetime.now(app.config['TIMEZONE'])):
     return note.get_timestamp() \
         if delta_time >= timedelta(days=1) else \
         humanize.naturaltime(delta_time)
+
+
+def notification(other_email, note, action, body):
+    def inner():
+        with app.app_context():
+            send_mail('【LoveCalendar消息通知】 {}{}'.format(note.author.username, action), [other_email],
+                      body.format(note.author.username,
+                                  note.get_timestamp(), markdown(note.content))
+                      )
+    threading.Thread(target=inner).start()
 
 
 def login_required(func):
@@ -165,6 +177,11 @@ def del_note(id):
     if note.author.id == session.get('user_id'):
         db.session.delete(note)
         db.session.commit()
+
+        other = User.query.filter(User.id != session.get('user_id')).first()
+        if other.email:
+            notification(other.email, note, '删除了一条动态', '{}删除了{}的动态：<p>{}')
+
         return jsonify(status_code=0)
 
     return jsonify(status_code=1)
@@ -181,6 +198,11 @@ def update_note(id):
     note.content = content
     note.last_updated = datetime.now(app.config['TIMEZONE'])
     db.session.commit()
+
+    other = User.query.filter(User.id != session.get('user_id')).first()
+    if other.email:
+        notification(other.email, note, '更新了一条动态', '{}更新了{}的动态：<p>{}')
+
     return jsonify(status_code=0)
 
 
@@ -194,6 +216,11 @@ def add_note():
     note = Note(content=content, author=author)
     db.session.add(note)
     db.session.commit()
+
+    other = User.query.filter(User.id != session.get('user_id')).first()
+    if other.email:
+        notification(other.email, note, '添加了一条动态', '{}于{}添加了动态：<p>{}')
+
     return jsonify(status_code=0)
 
 
