@@ -8,6 +8,7 @@ class User(db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     avatar = db.Column(db.String(128))
     password = db.Column(db.String(128), nullable=False)
+    # email = db.Column(db.String(128))
     favorite_color = db.Column(db.CHAR(10), default='#ff0000')
     notes = db.relationship('Note', backref='author', lazy='dynamic')
 

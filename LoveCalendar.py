@@ -1,4 +1,4 @@
-from app import app, db
+from app import app, db, mail
 from app.models import User, Note
 from datetime import datetime
 
@@ -9,5 +9,6 @@ def make_shell_context():
         'db': db,
         'User': User,
         'Note': Note,
+        'mail': mail,
         'datetime': datetime
     }

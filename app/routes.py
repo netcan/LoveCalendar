@@ -3,7 +3,14 @@ from datetime import datetime, date, timedelta
 from app import app, db
 from app.models import User, Note
 from functools import wraps
-import calendar
+import calendar, humanize
+
+
+def relative_time(note, now_time=datetime.now(app.config['TIMEZONE'])):
+    delta_time = now_time.replace(tzinfo=None) - note.timestamp
+    return note.get_timestamp() \
+        if delta_time >= timedelta(days=1) else \
+        humanize.naturaltime(delta_time)
 
 
 def login_required(func):
@@ -129,6 +136,7 @@ def get_notes(year, month, day):
     """ 获取当天的记录 """
     ret = {'status_code': 0,
            'notes': []}
+    now = datetime.now(app.config['TIMEZONE'])
     try:
         notes_day = date(year, month, day)
         notes = Note.query.filter_by(deleted=False)\
@@ -140,14 +148,13 @@ def get_notes(year, month, day):
             'author': note.author.username,
             'avatar': note.author.avatar,
             'content': note.content,
-            'timestamp': note.get_timestamp(),
+            'timestamp': relative_time(note, now),
             'editable': note.author.id == session.get('user_id')
         } for note in notes]
     except ValueError:
         pass
 
     return jsonify(**ret)
-
 
 
 @app.route("/api/note/<int:id>/delete", methods=['POST'])
@@ -200,14 +207,7 @@ def get_note(id):
     ret = {
         'status_code': 0,
         'note': {
-            'id': note.id,
-            'author': note.author.username,
-            'avatar': note.author.avatar,
             'content': note.content,
-            'timestamp': note.get_timestamp(),
-            'editable': note.author.id == session.get('user_id')
         }
     }
     return jsonify(**ret)
-
-

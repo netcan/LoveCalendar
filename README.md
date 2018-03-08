@@ -47,7 +47,7 @@ app.config.from_object(__name__)
 ```
 
 ### Init database
-Run command belove:
+Run command below:
 ```sh
 (flask) $ export FLASK_APP=LoveCalendar.py
 (flask) $ flask db upgrade

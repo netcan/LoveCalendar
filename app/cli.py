@@ -1,39 +1,43 @@
 from app import app, db
 from app.models import User, Note
+from flask_mail import Attachment
+from app.email import send_mail
 from click_help_colors import HelpColorsGroup
-from datetime import datetime
 from random import randint
 from faker import Faker
-import click
+from datetime import datetime
+import click, subprocess
 
 
-def adduser(username, avatar, favorite_color, password):
+def adduser(username, avatar, email, favorite_color, password):
     """Add a user to app"""
-    u = User(username=username, avatar=avatar, favorite_color=favorite_color)
+    u = User(username=username, avatar=avatar,
+             email=email, favorite_color=favorite_color)
     u.set_password(password)
     db.session.add(u)
     db.session.commit()
 
 
-@app.cli.group(cls=HelpColorsGroup,
+@app.cli.group(name='app', cls=HelpColorsGroup,
                help_headers_color='yellow',
                help_options_color='green')
-def app():
+def _app():
     """App operation"""
     pass
 
 
-@app.command()
+@_app.command()
 @click.argument('username')
 @click.option('--avatar', default=None, help="Set user's avatar")
+@click.option('--email', default=None, help="Set user's email")
 @click.option('--favorite_color', default=None, help="Set user's favorite color")
 @click.password_option(help="Set user's password")
-def add_user(username, avatar, favorite_color, password):
+def add_user(username, avatar, email, favorite_color, password):
     """Add a user to app"""
-    adduser(username, avatar, favorite_color, password)
+    adduser(username, avatar, email, favorite_color, password)
 
 
-@app.command()
+@_app.command()
 @click.argument('username')
 def del_user(username):
     """Delete a user"""
@@ -45,7 +49,7 @@ def del_user(username):
         db.session.commit()
 
 
-@app.command()
+@_app.command()
 def fake_notes():
     """Add some fake notes"""
     year, month = 2018, 1
@@ -61,8 +65,22 @@ def fake_notes():
     db.session.commit()
 
 
-@app.command()
+@_app.command()
 def test_users():
     """Add test users"""
     adduser('steve', "https://semantic-ui.com/images/avatar/large/steve.jpg", "#0000ff", "steve")
     adduser('stevie', "https://semantic-ui.com/images/avatar/large/stevie.jpg", "#ff0000", "stevie")
+
+
+@_app.command()
+def pg_backup():
+    """Backup pg database"""
+    now = datetime.now().strftime('%Y%m%d_%H%M')
+    filename = 'db_lovecalendar_{}.sql.gz'.format(now)
+    pg_dump = subprocess.Popen(('pg_dump', 'lovecalendar'), stdout=subprocess.PIPE)
+    output = subprocess.check_output('gzip', stdin=pg_dump.stdout)
+    pg_dump.wait()
+    with app.app_context():
+        send_mail('lovecalendar数据库备份', [app.config['ADMIN_MAIL']], None, [
+            Attachment(filename=filename, content_type='application/gzip', data=output)
+        ])
