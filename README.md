@@ -54,9 +54,9 @@ Run command belove:
 ```
 
 ### Init app and run
-Because this app needs only two users, you can use `flask app add_user` to add user, their password as same as their username.
+Because this app needs only two users, you can use `flask app add_user` to add user.
 
-For testing purpose, you can try `flask app test_users` to add default two users: steve and stevie.
+For testing purpose, you can try `flask app test_users` to add default two users: steve and stevie, their password as same as their username.
 
 Then you can use `flask app fake_notes` to add some test notes.
 

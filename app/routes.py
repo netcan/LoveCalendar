@@ -11,7 +11,7 @@ def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # 未进行登陆
-        if not session.get('username'):
+        if not session.get('user_id'):
             return jsonify(status_code=1)
         return func(*args, **kwargs)
     return wrapper
@@ -21,8 +21,8 @@ def login_required(func):
 @app.route("/index")
 def index():
     """ 主页面 """
-    if session.get('username'):
-        u = User.query.filter_by(username=session['username']).first()
+    if session.get('user_id'):
+        u = User.query.get(session['user_id'])
         return render_template("index.html", u=u)
     else:
         users = User.query.all()[:2]
@@ -36,7 +36,7 @@ def login():
     status_code: 0表示成功，1表示失败
     """
     ret = {'status_code': 1}
-    if session.get('username'):
+    if session.get('user_id'):
         ret['status_code'] = 0
         return jsonify(**ret)
 
@@ -45,7 +45,7 @@ def login():
     if username and password:
         u = User.query.filter_by(username=username).first()
         if u and u.check_password(password):
-            session['username'] = username
+            session['user_id'] = u.id
             ret['status_code'] = 0
 
     return jsonify(**ret)
@@ -54,7 +54,7 @@ def login():
 @app.route("/api/logout")
 def logout():
     """ 注销 """
-    session.pop('username', None)
+    session.pop('user_id', None)
     ret = {'status_code': 0}
     return jsonify(**ret)
 
@@ -75,16 +75,8 @@ def cal(year=None, month=None):
 
     # monthdates记录了该月的所有日期
     monthdates = cal.monthdatescalendar(year, month)
-    next_monthdates = cal.monthdatescalendar(year if month + 1 <= 12 else year + 1,
-                                             month + 1 if month + 1 <= 12 else 12)
-    while len(monthdates) < 6:
-        for w in next_monthdates:
-            if w in monthdates:
-                continue
-            monthdates.append(w)
-    # 获取当月的所有记录
     startTime = monthdates[0][0]
-    endTime = monthdates[5][-1] + timedelta(days=1)
+    endTime = monthdates[-1][-1] + timedelta(days=1)
     notes = Note.query.filter_by(deleted=False) \
         .filter(Note.timestamp.between(startTime, endTime)) \
         .order_by(Note.timestamp)\
@@ -109,7 +101,7 @@ def cal(year=None, month=None):
             daily_user = set()
             while noteidx < len(notes) and notes[noteidx].timestamp.date() == d:
                 n = notes[noteidx]
-                daily_user.add((n.author.username, n.author.favorite_color))
+                daily_user.add((n.author.id, n.author.favorite_color))
                 noteidx += 1
 
             if len(daily_user) == 1:
@@ -120,7 +112,8 @@ def cal(year=None, month=None):
 
             days.append(day)
 
-    for w in range(6):
+    ret['week5'] = []
+    for w in range(len(monthdates)):
         ret['week' + str(w)] = days[7 * w:7 * (w + 1)]
 
     ret["cal-title"] = calendar.month_name[month] + ' ' + str(year)
@@ -148,7 +141,7 @@ def get_notes(year, month, day):
             'avatar': note.author.avatar,
             'content': note.content,
             'timestamp': note.get_timestamp(),
-            'editable': note.author.username == session.get('username')
+            'editable': note.author.id == session.get('user_id')
         } for note in notes]
     except ValueError:
         pass
@@ -162,7 +155,7 @@ def get_notes(year, month, day):
 def del_note(id):
     """ 删除指定id的note记录 """
     note = Note.query.get(id)
-    if note.author.username == session.get('username'):
+    if note.author.id == session.get('user_id'):
         db.session.delete(note)
         db.session.commit()
         return jsonify(status_code=0)
@@ -176,7 +169,7 @@ def update_note(id):
     """ 根据id更新note """
     note = Note.query.get(id)
     content = request.form.get('content', None)
-    if not content or not note or note.author.username != session.get('username'):
+    if not content or not note or note.author.id != session.get('user_id'):
         return jsonify(status_code=1)
     note.content = content
     note.last_updated = datetime.now(app.config['TIMEZONE'])
@@ -190,12 +183,11 @@ def add_note():
     content = request.form.get('content', None)
     if not content:
         return jsonify(status_code=1)
-    author = User.query.filter_by(username=session.get('username')).first()
+    author = User.query.get(session.get('user_id'))
     note = Note(content=content, author=author)
     db.session.add(note)
     db.session.commit()
     return jsonify(status_code=0)
-
 
 
 @app.route("/api/note/<int:id>", methods=['GET'])
@@ -213,7 +205,7 @@ def get_note(id):
             'avatar': note.author.avatar,
             'content': note.content,
             'timestamp': note.get_timestamp(),
-            'editable': note.author.username == session.get('username')
+            'editable': note.author.id == session.get('user_id')
         }
     }
     return jsonify(**ret)
