@@ -14,23 +14,30 @@ function login() {
     $('#change_user').click(function () {
         $('.shape').shape('flip over');
     });
-    $('#login').click(function () {
-        var url = cal_api + 'login';
-        var username = $('.active.side input.username').val();
-        var password = $('.active.side input.password').val();
-        if(password) {
-            $.post(url, {
+    var url = cal_api + 'login';
+    $('#login').api({
+        url: url,
+        method: 'post',
+        beforeSend: function (settings) {
+            console.log(settings);
+            var username = $('.active.side input.username').val();
+            var password = $('.active.side input.password').val();
+            if(! password) {
+                alert('please input password!');
+                return false;
+            }
+            settings.data = {
                 username: username,
                 password: password
-            }).done(function (data) { // login success
-                if(data.status_code == 0) location.reload();
-                else alert('Login failed!')
-            })
-        } else alert('please input password!')
+            };
+            return settings;
+        },
+        onSuccess: function(data) {
+            if(data.status_code == 0) location.reload();
+            else alert('Login failed!')
+        }
 
     });
-
-    $('.ui.modal').modal('show');
 
 }
 
@@ -109,7 +116,10 @@ function renderCal(data) {
 
 function fetchNotes(year, month, day) {
     // show note list
-    var url = cal_api + 'notes/' + year + '/' + month + '/' + day;
+    var url = cal_api + 'notes';
+    if (typeof year !== 'undefined')
+        url += '/' + year + '/' + month + '/' + day;
+
     if (typeof fetchNotes.compiled === 'undefined') {
         var directive = {
             '.event': {
@@ -134,7 +144,9 @@ function fetchNotes(year, month, day) {
 
     $.getJSON(url).done(function (data) {
         $p('.detail.modal .feed').render(data, fetchNotes.compiled);
-        $('.detail.modal .header').text(year + '-' + month + '-' + day);
+        $('.note-content a').attr('target', '_blank');
+
+        $('.detail.modal .header').text(data.year + '-' + data.month + '-' + data.day);
 
         $('.detail.modal').modal({
             onApprove: function () {
@@ -143,23 +155,28 @@ function fetchNotes(year, month, day) {
             }
         }).modal('show');
 
-        $('.detail.modal .scrolling.content').scrollTop(0);
 
         // delete note
         $('.delete-note').click(function () {
             $('.dialog.modal .header').text('Delete Note');
             $('.dialog.modal .content').text('Do you want to delete it?');
+            showDialog();
             var note = $(this);
-            showDialog(function () {
-                // delete finished
-                var del_note_url = cal_api + 'note/' + note.attr('data-note-id') + '/delete';
-                $.post(del_note_url).done(function (data) {
+            var del_note_url = cal_api + 'note/' + note.attr('data-note-id') + '/delete';
+
+            $('.dialog.modal .positive.button').api({
+                url: del_note_url,
+                method: 'post',
+                onSuccess: function (data) {
                     if(data.status_code == 0) {
+                        // delete finished
                         note.parents('.event').remove();
                         fetchDays(renderCal.year, renderCal.month);
+                        $('.dialog.modal').modal('hide');
                     }
-                });
+                }
             });
+
         });
 
         // edit note
@@ -171,18 +188,33 @@ function fetchNotes(year, month, day) {
                 if(data.status_code == 0) {
                     $('.editor.modal textarea').val(data.note.content);
                     $('.editor.modal .approve.button').text('Update');
-                    showEditor(function () {
-                        var content = $('.editor.modal textarea').val();
-                        $.post(update_note_url, {
-                            content: content
-                        }).done(function (data) { // login success
-                            if(data.status_code == 0) {
+                    showEditor();
+
+                    $('.editor.modal .positive.button').api({
+                        url: update_note_url,
+                        method: 'post',
+                        beforeSend: function (settings) {
+                            var content = $('.editor.modal textarea').val();
+                            if(! content) {
+                                alert('please input content!');
+                                return false;
+                            }
+                            settings.data = {
+                                content: content
+                            };
+                            return settings;
+                        },
+                        onSuccess: function (data) {
+                            var content = $('.editor.modal textarea').val();
+                            if(data.status_code == 0) { // edit success
                                 $('.detail.modal .feed .note-content[data-note-id='+ note.attr('data-note-id') +']').html(
                                     markdown.toHTML(content)
                                 );
-                                return true;
+                                $('.note-content a').attr('target', '_blank');
+                                $('.editor.modal').modal('hide');
                             }
-                        })
+                        }
+
                     });
                 }
             });
@@ -199,27 +231,42 @@ function addNote(year, month, day) {
     $('.editor.modal .approve.button').text('Biu');
     var autosave = setInterval(function () {
         localStorage.setItem('new-note', $('.editor.modal textarea').val());
-    }, 1000);
+    }, 2000);
     var stop_autosave = function () {
         clearInterval(autosave);
     };
-    showEditor(function () {
-        var new_note_url = cal_api + 'note/new';
-        if(typeof year !== 'undefined')
-            new_note_url = cal_api + 'note/' + year + '/' + month + '/' + day + '/new';
+    showEditor(stop_autosave, stop_autosave);
 
+    var new_note_url = cal_api + 'note/new';
+    if(typeof year !== 'undefined')
+        new_note_url = cal_api + 'note/' + year + '/' + month + '/' + day + '/new';
 
-        var content = $('.editor.modal textarea').val();
-        return $.post(new_note_url, {
-            content: content
-        }).done(function (data) {
+    // new note
+    $('.editor.modal .positive.button').api({
+        url: new_note_url,
+        method: 'post',
+        beforeSend: function (settings) {
+            var content = $('.editor.modal textarea').val();
+            if(! content) {
+                alert('please input content!');
+                return false;
+            }
+            settings.data = {
+                content: content
+            };
+            return settings;
+        },
+        onSuccess: function (data) {
             if(data.status_code == 0) { // add success
+                stop_autosave();
                 fetchDays(renderCal.year, renderCal.month);
+                fetchNotes(year, month, day);
                 localStorage.removeItem('new-note');
-                return true;
-            } else return false;
-        })
-    }, stop_autosave, stop_autosave);
+                $('.editor.modal').modal('hide');
+            }
+        }
+
+    });
 }
 
 function sidebar() {
@@ -232,30 +279,38 @@ function sidebar() {
     $('#logout').click(function () {
         $('.dialog.modal .header').text('Logout');
         $('.dialog.modal .content').text('Do you want to sign out?');
-        showDialog(function() {
-            var url = cal_api + 'logout';
-            $.getJSON(url).done(function (data) {
+        showDialog();
+
+        var url = cal_api + 'logout';
+        $('.dialog.modal .positive.button').api({
+            url: url,
+            onSuccess: function (data) {
                 if(data.status_code == 0)
                     location.reload();
-            });
+            }
         });
+
     });
 }
 
-function showDialog(approve) {
+function showDialog() {
     $('.dialog.modal').modal({
         allowMultiple: true,
         blurring  : true,
         closable  : true,
-        onApprove : approve
+        onApprove : function () {
+            return false;
+        }
     }).modal('show');
 }
 
 
-function showEditor(approve, deny, hide) {
+function showEditor(deny, hide) {
     $('.editor.modal').modal({
         allowMultiple: true,
-        onApprove : approve,
+        onApprove : function () {
+            return false;
+        },
         onDeny: deny,
         onHidden: hide
     }).modal('show');

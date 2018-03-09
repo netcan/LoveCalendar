@@ -5,12 +5,16 @@ from app.models import User, Note
 from app.email import send_mail
 from functools import wraps
 from markdown import markdown
-import calendar, humanize, threading
+import calendar, humanize, threading, time
 
 
-def relative_time(note, now_time=datetime.now(app.config['TIMEZONE'])):
-    delta_time = now_time.replace(tzinfo=None) - note.timestamp
-    return note.get_timestamp() \
+def format_time(time):
+    return time.strftime('%Y-%m-%d %H:%M')
+
+
+def relative_time(timestamp, now_time=datetime.now(app.config['TIMEZONE'])):
+    delta_time = now_time.replace(tzinfo=None) - timestamp
+    return format_time(timestamp) \
         if delta_time >= timedelta(days=1) else \
         humanize.naturaltime(delta_time)
 
@@ -143,14 +147,17 @@ def cal(year=None, month=None):
 
 
 @app.route("/api/notes/<int:year>/<int:month>/<int:day>", methods=["GET"])
+@app.route("/api/notes")
 @login_required
-def get_notes(year, month, day):
+def get_notes(year=None, month=None, day=None):
     """ 获取当天的记录 """
     ret = {'status_code': 0,
            'notes': []}
     now = datetime.now(app.config['TIMEZONE'])
     try:
-        notes_day = datetime(year, month, day)
+        notes_day = datetime(now.year, now.month, now.day)
+        if year and month and day:
+            notes_day = datetime(year, month, day)
         notes = Note.query.filter_by(deleted=False)\
             .filter(Note.timestamp.between(notes_day, notes_day + timedelta(days=1) - timedelta(seconds=1))) \
             .order_by(Note.timestamp)\
@@ -160,9 +167,11 @@ def get_notes(year, month, day):
             'author': note.author.username,
             'avatar': note.author.avatar,
             'content': note.content,
-            'timestamp': relative_time(note, now),
+            'timestamp': relative_time(note.create_at if note.create_at else note.timestamp, now),
             'editable': note.author.id == session.get('user_id')
         } for note in notes]
+        ret['year'], ret['month'], ret['day'] = \
+            notes_day.year, notes_day.month, notes_day. day
     except ValueError:
         pass
 
@@ -212,14 +221,17 @@ def update_note(id):
 def add_note(year=None, month=None, day=None):
     timestamp = None
     if year and month and day:
-        now_time = datetime.now(app.config['TIMEZONE'])
-        timestamp = datetime(year, month, day, now_time.hour, now_time.minute, now_time.second)
+        timestamp = datetime(year, month, day, 23, 59, 59)
+
+    create_at = datetime.now(app.config['TIMEZONE']) \
+        if timestamp else \
+        None
 
     content = request.form.get('content', None)
     if not content:
         return jsonify(status_code=1)
     author = User.query.get(session.get('user_id'))
-    note = Note(content=content, author=author, timestamp=timestamp)
+    note = Note(content=content, author=author, timestamp=timestamp, create_at=create_at)
     db.session.add(note)
     db.session.commit()
 
