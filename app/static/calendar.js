@@ -3,7 +3,10 @@ cal_api = '/api/';
 function fetchDays(year, month) {
 
     var url = cal_api + 'cal/';
-    if(typeof year !== 'undefined') url += year + '/' + month;
+    if(typeof year !== 'undefined')
+        url += year + '/' + month;
+    else if($.urlParam('year') && $.urlParam('month'))
+        url += $.urlParam('year') + '/' + $.urlParam('month');
 
     $.getJSON(url).done(function (data) {
         renderCal(data);
@@ -382,3 +385,18 @@ function typing(enable) {
     }
 
 }
+
+(function($){
+    $.urlParam = function( query ) {
+        query = query.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+        var expr = "[\\?&]"+query+"=([^&#]*)";
+        var regex = new RegExp( expr );
+        var results = regex.exec( window.location.href );
+        if( results !== null ) {
+            return results[1];
+            return decodeURIComponent(results[1].replace(/\+/g, " "));
+        } else {
+            return false;
+        }
+    };
+})(jQuery);
