@@ -160,14 +160,14 @@ def get_notes(year=None, month=None, day=None):
             notes_day = datetime(year, month, day)
         notes = Note.query.filter_by(deleted=False)\
             .filter(Note.timestamp.between(notes_day, notes_day + timedelta(days=1) - timedelta(seconds=1))) \
-            .order_by(Note.timestamp)\
+            .order_by(Note.timestamp, Note.create_at)\
             .all()
         ret['notes'] = [{
             'id': note.id,
             'author': note.author.username,
             'avatar': note.author.avatar,
             'content': note.content,
-            'timestamp': relative_time(note.create_at if note.create_at else note.timestamp, now),
+            'timestamp': relative_time(note.create_at, now),
             'editable': note.author.id == session.get('user_id')
         } for note in notes]
         ret['year'], ret['month'], ret['day'] = \
@@ -219,13 +219,11 @@ def update_note(id):
 @app.route("/api/note/new", methods=['POST'])
 @login_required
 def add_note(year=None, month=None, day=None):
-    timestamp = None
-    if year and month and day:
+    create_at = datetime.now(app.config['TIMEZONE'])
+    timestamp = create_at
+    # 补签
+    if year and month and day and date(year, month, day) != create_at.date():
         timestamp = datetime(year, month, day, 23, 59, 59)
-
-    create_at = datetime.now(app.config['TIMEZONE']) \
-        if timestamp else \
-        None
 
     content = request.form.get('content', None)
     if not content:
