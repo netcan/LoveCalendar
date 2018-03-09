@@ -24,7 +24,7 @@ def notification(other_email, note, action, body):
         with app.app_context():
             send_mail('【LoveCalendar消息通知】 {}{}'.format(note.author.username, action), [other_email],
                       body.format(note.author.username,
-                                  note.get_timestamp(), markdown(note.content))
+                                  format_time(note.timestamp), markdown(note.content))
                       )
     threading.Thread(target=inner).start()
 
