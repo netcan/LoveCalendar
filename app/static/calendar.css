@@ -24,41 +24,38 @@ body {
     background-color: #3cb0fd;
     color: white; }
 
-.paper {
-  margin: 10px auto 0px;
-  padding: 6px 5px 4px 42px;
+.note {
   position: relative;
-  color: #444;
-  line-height: 20px;
-  border: 1px solid #d2d2d2;
-  background: #fff;
-  background: -webkit-gradient(linear, 0 0, 0 100%, from(#d9eaf3), color-stop(4%, #fff)) 0 4px;
-  background: -webkit-linear-gradient(top, #d9eaf3 0%, #fff 8%) 0 4px;
-  background: -moz-linear-gradient(top, #d9eaf3 0%, #fff 8%) 0 4px;
-  background: -ms-linear-gradient(top, #d9eaf3 0%, #fff 8%) 0 4px;
-  background: -o-linear-gradient(top, #d9eaf3 0%, #fff 8%) 0 4px;
-  background: linear-gradient(top, #d9eaf3 0%, #fff 8%) 0 4px;
-  -webkit-background-size: 100% 20px;
-  -moz-background-size: 100% 20px;
-  -ms-background-size: 100% 20px;
-  -o-background-size: 100% 20px;
-  background-size: 100% 20px;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
-  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07); }
+  padding: 1em 1.5em;
+  margin: 10px auto;
+  color: #333;
+  background: #ffeeb0;
+  overflow: hidden; }
 
-.paper::before {
-  content: '';
+.note:before {
+  content: "";
   position: absolute;
-  width: 4px;
   top: 0;
-  left: 30px;
-  bottom: 0;
-  border: 1px solid;
-  border-color: transparent #efe4e4; }
+  right: 0;
+  border-width: 0 16px 16px 0;
+  border-style: solid;
+  border-color: #fff #fff #658E15 #658E15;
+  background: #c0a72f;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), -1px 1px 1px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), -1px 1px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), -1px 1px 1px rgba(0, 0, 0, 0.2);
+  /* Firefox 3.0 damage limitation */
+  display: block;
+  width: 0; }
+
+.note.rounded {
+  -moz-border-radius: 3px 0 3px 3px;
+  border-radius: 3px 0 3px 3px; }
+
+.note.rounded:before {
+  border-width: 8px;
+  border-color: #fff #fff transparent transparent;
+  border-radius: 0 0 0 5px; }
 
 .unselectable {
   -webkit-touch-callout: none;

@@ -133,6 +133,7 @@ function fetchNotes(year, month, day) {
                     '.delete-note@data-note-id': 'note.id',
                     '.edit-note@data-note-id': 'note.id',
                     '.note-content@data-note-id': 'note.id',
+                    '.note-content@data-content': 'note.content',
                     '.note-content': function (d) {
                         return markdown.toHTML(d.item.content);
                     }
@@ -154,6 +155,32 @@ function fetchNotes(year, month, day) {
                 return false;
             }
         }).modal('show');
+
+        // type mode
+        if(! localStorage.getItem('typeit-mode'))
+            localStorage.setItem('typeit-mode', 'off');
+        if (localStorage.getItem('typeit-mode') === 'on') {
+            $('#typeit').checkbox('check');
+            typing(true);
+        } else { // off
+            $('.note-content').readmore({
+                speed: 500
+            });
+        }
+
+        $('#typeit').checkbox({
+            onChecked: function () {
+                localStorage.setItem('typeit-mode', 'on');
+                typing(true);
+            },
+            onUnchecked: function () {
+                localStorage.setItem('typeit-mode', 'off');
+                typing(false);
+            }
+        });
+
+
+
 
 
         // delete note
@@ -222,6 +249,7 @@ function fetchNotes(year, month, day) {
 
         })
     });
+
 
 
 }
@@ -314,4 +342,29 @@ function showEditor(deny, hide) {
         onDeny: deny,
         onHidden: hide
     }).modal('show');
+}
+
+function typing(enable) {
+    if(enable) { // on
+        $('.note-content').readmore('destroy');
+        $('.note-content').each(function (idx, elem) {
+            var strings = $(elem).attr('data-content').replace(/\n\n/g, '\n\n\n\n').split('\n\n');
+            $(elem).html('');
+
+            new TypeIt(elem, {
+                strings: strings,
+                speed: 180
+            });
+        })
+    } else { // off
+        $('.note-content').each(function (idx, elem) {
+            $(elem).html(markdown.toHTML(
+                $(elem).attr('data-content')
+            ));
+        });
+        $('.note-content').readmore({
+            speed: 500
+        });
+    }
+
 }

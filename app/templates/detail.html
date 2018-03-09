@@ -2,6 +2,7 @@
     <i class="close icon"></i>
     <div class="header">Header</div>
     <div class="scrolling content">
+        <span id="content-top"></span>
 
         <div class="ui feed">
             <div class="event">
@@ -22,14 +23,25 @@
                             <i class="trash icon"></i> 删除
                         </a>
                     </div>
-                    <div class="paper note-content text">
-                    </div>
+{#                    <div class="ui tall stacked violet inverted tertiary segment note-content text"> </div>#}
+                    <div class="note rounded note-content text"> </div>
                 </div>
             </div>
         </div>
 
+        <span id="content-bottom"></span>
+
     </div>
     <div class="actions">
+
+        <a class="ui circular teal icon button" href="#content-top"><i class="angle double up icon"></i></a>
+        <a class="ui circular teal icon button" href="#content-bottom"><i class="angle double down icon"></i></a>
+
+        <div id="typeit" class="ui toggle checkbox">
+             <input type="checkbox" tabindex="0" class="hidden">
+            <label><i class="keyboard icon"></i></label>
+        </div>
+
         <div class="ui primary approve labeled icon button">
             写点什么...<i class="pencil alternate icon"></i>
         </div>
