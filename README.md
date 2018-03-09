@@ -60,7 +60,7 @@ For testing purpose, you can try `flask app test_users` to add default two users
 
 Then you can use `flask app fake_notes` to add some test notes.
 
-To run it by `flask run`.
+To run it by `flask run` or `gunicorn app:app -w 4`.
 
 
 
