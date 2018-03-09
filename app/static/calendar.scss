@@ -17,6 +17,9 @@ body {
   .other-day {
     color: gray;
   }
+  .day, .other-day {
+    cursor: pointer;
+  }
   .today {
     @extend %love;
   }
@@ -51,12 +54,13 @@ body {
 }
 
 .note {
+  word-break: break-all;
+  word-wrap: break-word;
   position: relative;
   padding: 1em 1.5em;
   margin: 10px auto;
   color: #333;
   background: #ffeeb0;
-  overflow: hidden;
 }
 
 .note:before {

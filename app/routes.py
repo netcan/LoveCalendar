@@ -221,9 +221,12 @@ def update_note(id):
 def add_note(year=None, month=None, day=None):
     create_at = datetime.now(app.config['TIMEZONE'])
     timestamp = create_at
-    # 补签
-    if year and month and day and date(year, month, day) != create_at.date():
-        timestamp = datetime(year, month, day, 23, 59, 59)
+    if year and month and day:
+        if date(year, month, day) > create_at.date():
+            return jsonify(status_code=1)
+        # 补签
+        if date(year, month, day) < create_at.date():
+            timestamp = datetime(year, month, day, 23, 59, 59)
 
     content = request.form.get('content', None)
     if not content:

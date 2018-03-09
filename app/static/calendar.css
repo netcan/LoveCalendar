@@ -13,6 +13,8 @@ body {
     border-top: 0px; }
   #cal .other-day {
     color: gray; }
+  #cal .day, #cal .other-day {
+    cursor: pointer; }
   #cal .today, #cal .half-love, #cal .full-love {
     cursor: pointer;
     background: no-repeat center;
@@ -25,12 +27,13 @@ body {
     color: white; }
 
 .note {
+  word-break: break-all;
+  word-wrap: break-word;
   position: relative;
   padding: 1em 1.5em;
   margin: 10px auto;
   color: #333;
-  background: #ffeeb0;
-  overflow: hidden; }
+  background: #ffeeb0; }
 
 .note:before {
   content: "";

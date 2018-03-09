@@ -107,11 +107,21 @@ function renderCal(data) {
     $('#menu').click(function () {
         $('.ui.sidebar').sidebar('toggle');
     });
+
+    // 有记录的日期
     $('.markday').click(function () {
         var date = $(this).attr('data-date');
         date = date.split('-');
         fetchNotes(date[0], date[1], date[2]);
     });
+    // 没记录的日期
+    $('.day, .other-day').click(function () {
+        var date = $(this).attr('data-date');
+        date = date.split('-');
+        $('.detail.modal .feed').hide();
+        showDetail(date[0], date[1], date[2]);
+    });
+
 }
 
 function fetchNotes(year, month, day) {
@@ -147,14 +157,9 @@ function fetchNotes(year, month, day) {
         $p('.detail.modal .feed').render(data, fetchNotes.compiled);
         $('.note-content a').attr('target', '_blank');
 
-        $('.detail.modal .header').text(data.year + '-' + data.month + '-' + data.day);
+        $('.detail.modal .feed').show();
+        showDetail(data.year, data.month, data.day);
 
-        $('.detail.modal').modal({
-            onApprove: function () {
-                addNote(year, month, day);
-                return false;
-            }
-        }).modal('show');
 
         // type mode
         if(! localStorage.getItem('typeit-mode'))
@@ -324,7 +329,6 @@ function sidebar() {
 function showDialog() {
     $('.dialog.modal').modal({
         allowMultiple: true,
-        blurring  : true,
         closable  : true,
         onApprove : function () {
             return false;
@@ -341,6 +345,16 @@ function showEditor(deny, hide) {
         },
         onDeny: deny,
         onHidden: hide
+    }).modal('show');
+}
+
+function showDetail(year, month, day) {
+    $('.detail.modal .header').text(year + '-' + month + '-' + day);
+    $('.detail.modal').modal({
+        onApprove: function () {
+            addNote(year, month, day);
+            return false;
+        }
     }).modal('show');
 }
 
